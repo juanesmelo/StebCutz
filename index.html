@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Política de Privacidad — StebCutz</title>
-  <meta name="description" content="Política de Privacidad del asistente de citas por WhatsApp de StebCutz." />
+  <title>StebCutz — Citas de barbería por WhatsApp</title>
+  <meta name="description" content="StebCutz es un asistente que agenda tus citas de barbería directamente por WhatsApp: disponibilidad en tiempo real, confirmaciones y recordatorios automáticos." />
   <style>
     :root {
       --bg: #0f1115;
@@ -12,9 +12,11 @@
       --text: #e6e8eb;
       --muted: #9aa3ad;
       --accent: #25d366; /* WhatsApp green */
+      --accent-dark: #128c7e;
       --border: #262b34;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -22,176 +24,223 @@
       color: var(--text);
       line-height: 1.65;
     }
-    header {
-      background: linear-gradient(135deg, #128c7e, #25d366);
-      padding: 48px 20px;
+    a { color: var(--accent); }
+
+    /* Hero */
+    .hero {
+      background: radial-gradient(1200px 500px at 50% -10%, rgba(37,211,102,0.18), transparent 60%),
+                  linear-gradient(135deg, #0f1115, #11161c);
+      padding: 96px 20px 72px;
       text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(37,211,102,0.35);
+      background: rgba(37,211,102,0.08);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 22px;
+    }
+    .hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2.2rem, 6vw, 3.4rem);
+      line-height: 1.1;
       color: #fff;
     }
-    header h1 { margin: 0 0 8px; font-size: 2rem; }
-    header p { margin: 0; opacity: 0.92; }
-    main {
-      max-width: 820px;
-      margin: -28px auto 60px;
-      padding: 0 20px;
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      max-width: 620px;
+      margin: 0 auto 32px;
+      color: var(--muted);
+      font-size: 1.1rem;
     }
-    .card {
+    .cta {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+      color: #06210f;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      box-shadow: 0 8px 26px rgba(37,211,102,0.28);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(37,211,102,0.38); }
+
+    /* Layout */
+    main { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+    section { padding: 64px 0; }
+    section h2 {
+      text-align: center;
+      font-size: 1.7rem;
+      color: #fff;
+      margin: 0 0 8px;
+    }
+    section .sub {
+      text-align: center;
+      color: var(--muted);
+      margin: 0 auto 40px;
+      max-width: 560px;
+    }
+
+    /* Features */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .feature {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 28px 32px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+      padding: 26px 24px;
+      transition: border-color 0.15s ease, transform 0.15s ease;
     }
-    h2 {
-      margin-top: 32px;
-      font-size: 1.25rem;
-      color: #fff;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
+    .feature:hover { border-color: rgba(37,211,102,0.4); transform: translateY(-3px); }
+    .feature .icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature h3 { margin: 0 0 8px; font-size: 1.1rem; color: #fff; }
+    .feature p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+    /* Steps */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      counter-reset: step;
     }
-    h2:first-of-type { margin-top: 8px; }
-    a { color: var(--accent); }
-    .muted { color: var(--muted); font-size: 0.92rem; }
-    ul { padding-left: 22px; }
-    li { margin-bottom: 6px; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 12px 0;
-      font-size: 0.95rem;
-    }
-    th, td {
-      text-align: left;
-      padding: 10px 12px;
+    .step {
+      background: var(--card);
       border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      position: relative;
     }
-    th { background: #1f242c; }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #06210f;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .step h3 { margin: 0 0 6px; font-size: 1.05rem; color: #fff; }
+    .step p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+    /* Tech */
+    .chips { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .chip {
+      background: #1f242c;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.92rem;
+    }
+
     footer {
       text-align: center;
       color: var(--muted);
-      font-size: 0.85rem;
-      padding: 24px 20px 48px;
+      font-size: 0.88rem;
+      padding: 36px 20px 56px;
+      border-top: 1px solid var(--border);
     }
-    code {
-      background: #1f242c;
-      padding: 2px 6px;
-      border-radius: 5px;
-      font-size: 0.9em;
-    }
+    footer a { margin: 0 10px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Política de Privacidad</h1>
-    <p>StebCutz — Asistente de citas por WhatsApp</p>
+  <header class="hero">
+    <span class="badge">Barbería · WhatsApp · Citas</span>
+    <h1>Agenda tu corte por <span>WhatsApp</span></h1>
+    <p>
+      <strong>StebCutz</strong> es un asistente que reserva tus citas de barbería en segundos,
+      con disponibilidad en tiempo real, confirmaciones y recordatorios automáticos.
+    </p>
+    <a class="cta" href="#contacto">Reservar por WhatsApp</a>
   </header>
 
   <main>
-    <div class="card">
-      <p class="muted"><strong>Última actualización:</strong> 10 de junio de 2026</p>
-
-      <p>
-        En <strong>StebCutz</strong> ("nosotros", "nuestro" o "el servicio") respetamos tu privacidad.
-        Esta Política de Privacidad explica qué información recopilamos cuando interactúas con nuestro
-        asistente de citas a través de <strong>WhatsApp</strong>, cómo la usamos, con quién la
-        compartimos y cuáles son tus derechos.
+    <section id="que-es">
+      <h2>¿Qué es StebCutz?</h2>
+      <p class="sub">
+        Un bot conversacional que conecta a tus clientes con tu agenda. Sin apps que descargar,
+        sin llamadas: todo desde el chat que ya usan a diario.
       </p>
+      <div class="grid">
+        <div class="feature">
+          <div class="icon">💬</div>
+          <h3>Conversacional</h3>
+          <p>Tus clientes agendan escribiendo, de forma natural, directamente por WhatsApp.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">⏱️</div>
+          <h3>Tiempo real</h3>
+          <p>Consulta la disponibilidad de horarios al instante y evita reservas duplicadas.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">✅</div>
+          <h3>Confirmaciones</h3>
+          <p>Envía confirmaciones y recordatorios automáticos para reducir las inasistencias.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">🗓️</div>
+          <h3>Siempre disponible</h3>
+          <p>Atiende solicitudes 24/7, incluso fuera del horario de la barbería.</p>
+        </div>
+      </div>
+    </section>
 
-      <h2>1. Responsable del tratamiento</h2>
-      <p>
-        El responsable del tratamiento de tus datos es <strong>StebCutz</strong>.<br />
-        Para cualquier consulta sobre privacidad puedes escribirnos a:
-        <a href="mailto:contacto@stebcutz.com">contacto@stebcutz.com</a>.
-      </p>
-      <p class="muted">
-        (Reemplaza este correo por el correo real de contacto de tu negocio.)
-      </p>
+    <section id="como-funciona">
+      <h2>¿Cómo funciona?</h2>
+      <p class="sub">Tres pasos y tu cita queda lista.</p>
+      <div class="steps">
+        <div class="step">
+          <h3>Escribe</h3>
+          <p>El cliente envía un mensaje al WhatsApp de la barbería.</p>
+        </div>
+        <div class="step">
+          <h3>Elige</h3>
+          <p>StebCutz muestra los horarios libres y el cliente selecciona el que prefiera.</p>
+        </div>
+        <div class="step">
+          <h3>Listo</h3>
+          <p>La cita queda agendada y se envía la confirmación automática.</p>
+        </div>
+      </div>
+    </section>
 
-      <h2>2. Información que recopilamos</h2>
-      <p>Cuando usas nuestro asistente por WhatsApp, podemos recopilar:</p>
-      <table>
-        <tr><th>Dato</th><th>Finalidad</th></tr>
-        <tr><td>Número de teléfono de WhatsApp</td><td>Identificarte y comunicarnos contigo</td></tr>
-        <tr><td>Nombre o perfil de WhatsApp</td><td>Personalizar la atención</td></tr>
-        <tr><td>Contenido de tus mensajes</td><td>Atender tu solicitud de cita</td></tr>
-        <tr><td>Detalles de la cita (fecha, hora, servicio)</td><td>Agendar y confirmar tu reserva</td></tr>
-      </table>
-      <p>No solicitamos ni almacenamos datos de tarjetas de crédito ni información financiera.</p>
+    <section id="tecnologia">
+      <h2>Tecnología</h2>
+      <p class="sub">Construido sobre infraestructura confiable y escalable.</p>
+      <div class="chips">
+        <span class="chip">WhatsApp Cloud API</span>
+        <span class="chip">Google Sheets</span>
+        <span class="chip">AWS Serverless</span>
+        <span class="chip">GitHub Actions (CI/CD)</span>
+      </div>
+    </section>
 
-      <h2>3. Cómo usamos tu información</h2>
-      <ul>
-        <li>Consultar la disponibilidad de horarios en tiempo real.</li>
-        <li>Agendar, modificar o cancelar tus citas.</li>
-        <li>Enviarte confirmaciones y recordatorios de tu cita.</li>
-        <li>Responder a tus preguntas y mejorar la calidad del servicio.</li>
-      </ul>
-
-      <h2>4. Base legal</h2>
-      <p>
-        Tratamos tus datos con base en tu <strong>consentimiento</strong> (al iniciar una conversación
-        con nosotros) y en la <strong>ejecución del servicio</strong> de agendamiento que solicitas.
-      </p>
-
-      <h2>5. Con quién compartimos tu información</h2>
-      <p>Utilizamos proveedores tecnológicos para operar el servicio:</p>
-      <table>
-        <tr><th>Proveedor</th><th>Servicio</th></tr>
-        <tr><td>Meta Platforms, Inc. (WhatsApp)</td><td>Envío y recepción de mensajes</td></tr>
-        <tr><td>Google (Google Sheets)</td><td>Gestión de disponibilidad y reservas</td></tr>
-        <tr><td>Amazon Web Services (AWS)</td><td>Alojamiento e infraestructura del bot</td></tr>
-      </table>
-      <p>
-        No vendemos, alquilamos ni cedemos tus datos personales a terceros con fines publicitarios.
-      </p>
-
-      <h2>6. Conservación de los datos</h2>
-      <p>
-        Conservamos tu información únicamente durante el tiempo necesario para gestionar tus citas y
-        cumplir con obligaciones legales. Cuando ya no sea necesaria, será eliminada o anonimizada.
-      </p>
-
-      <h2>7. Tus derechos</h2>
-      <p>Puedes solicitar en cualquier momento:</p>
-      <ul>
-        <li>Acceder a los datos que tenemos sobre ti.</li>
-        <li>Rectificar datos incorrectos o desactualizados.</li>
-        <li>Eliminar tus datos ("derecho al olvido").</li>
-        <li>Retirar tu consentimiento y dejar de recibir mensajes.</li>
-      </ul>
-      <p>
-        Para ejercer estos derechos, escríbenos a
-        <a href="mailto:contacto@stebcutz.com">contacto@stebcutz.com</a>.
-      </p>
-
-      <h2>8. Seguridad</h2>
-      <p>
-        Aplicamos medidas técnicas y organizativas razonables para proteger tu información frente a
-        accesos no autorizados, pérdida o alteración. Las comunicaciones a través de WhatsApp están
-        cifradas de extremo a extremo por la plataforma de Meta.
-      </p>
-
-      <h2>9. Menores de edad</h2>
-      <p>
-        Nuestro servicio no está dirigido a menores de edad. Si eres menor, utiliza el servicio
-        bajo la supervisión de un adulto responsable.
-      </p>
-
-      <h2>10. Cambios en esta política</h2>
-      <p>
-        Podemos actualizar esta Política de Privacidad ocasionalmente. La versión vigente siempre
-        estará disponible en esta página, indicando la fecha de la última actualización.
-      </p>
-
-      <h2>11. Contacto</h2>
-      <p>
-        Si tienes preguntas sobre esta Política de Privacidad, contáctanos en:<br />
-        📧 <a href="mailto:contacto@stebcutz.com">contacto@stebcutz.com</a>
-      </p>
-    </div>
+    <section id="contacto" style="text-align:center;">
+      <h2>¿List@ para probarlo?</h2>
+      <p class="sub">Escríbenos y agenda tu próxima cita por WhatsApp.</p>
+      <a class="cta" href="mailto:contacto@stebcutz.com">Contáctanos</a>
+    </section>
   </main>
 
   <footer>
-    © 2026 StebCutz · Todos los derechos reservados.
+    <div>© 2026 StebCutz · Asistente de citas por WhatsApp</div>
+    <div style="margin-top:10px;">
+      <a href="./privacy.html">Política de Privacidad</a>
+    </div>
   </footer>
 </body>
 </html>
