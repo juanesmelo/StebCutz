@@ -49,17 +49,56 @@ Todas guardadas de forma segura en el archivo `.env` (ignorado por git, **no** s
 
 ---
 
+## 📅 Sesión: 11–12 de junio de 2026
+
+### ✅ 1. Número de producción de WhatsApp
+- Registrado el número de negocio real **+57 311 8330285** (nombre verificado: *StebCutz*).
+- Actualizados los IDs en `.env` (número de prueba dejado comentado):
+  - `WHATSAPP_PHONE_NUMBER_ID = 1176015402258622`
+  - `WHATSAPP_BUSINESS_ACCOUNT_ID = 1594122622136580`
+- **Activado en la Cloud API** vía Graph API (`/register` con PIN de dos pasos):
+  `status: CONNECTED`, `platform_type: CLOUD_API`. (Antes estaba `PENDING` y por eso
+  `wa.me` lo daba como inexistente.)
+- Definido `WHATSAPP_VERIFY_TOKEN` y `WHATSAPP_REGISTRATION_PIN` (ambos en `.env`).
+
+### ✅ 2. GitHub Pages — home del proyecto
+- `index.html`: landing minimal de StebCutz (hero, features, pasos, stack).
+- `privacy.html`: política de privacidad (antes era el `index.html`), enlazada desde el home.
+- ⚠️ La URL de privacidad cambió a `…/StebCutz/privacy.html` (actualizar en Meta si se usa).
+
+### ✅ 3. Infraestructura AWS con CDK (Python)
+- `stebcutz/stebcutz_stack.py`: **DynamoDB** (PAY_PER_REQUEST) + **una Lambda** (Python 3.12)
+  + **API Gateway REST** con `/webhook` (GET verificación, POST mensajes).
+- `lambda/webhook/handler.py`: verifica el webhook y responde **"Hola"**, con deduplicación
+  de mensajes en DynamoDB (idempotencia ante reintentos de Meta).
+- Región: **us-east-1**. Cuenta AWS: `435506672463`.
+- **URL del webhook:** `https://fhdh73cche.execute-api.us-east-1.amazonaws.com/prod/webhook`
+
+### ✅ 4. CI/CD con GitHub Actions
+- `.github/workflows/deploy.yml`: en push a `main` corre `cdk bootstrap` + `cdk deploy`.
+- Usuario IAM dedicado **`stebcutz-deploy`** (AdministratorAccess) creado vía AWS CLI.
+- **GitHub Secrets** cargados (vía `gh secret set`): `AWS_ACCESS_KEY_ID`,
+  `AWS_SECRET_ACCESS_KEY`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`.
+- PR **#1** mergeado → primer despliegue **exitoso**.
+
+### ✅ 5. Webhook conectado a Meta (vía Graph API, sin consola)
+- `POST /{app-id}/subscriptions` → callback URL + verify token + campo `messages` (`active: true`).
+- `POST /{waba-id}/subscribed_apps` → WABA suscrita a la app StebCutz.
+- Verificación del webhook probada contra AWS: token correcto → 200 + challenge; token malo → 403.
+
+---
+
 ## 🔜 Próximos pasos
 
-- [ ] Definir el `WHATSAPP_VERIFY_TOKEN` (palabra secreta para el webhook).
-- [ ] Activar GitHub Pages y poner la URL de privacidad en la configuración de la app de Meta.
-- [ ] Enviar un mensaje de prueba real a un número de WhatsApp registrado.
-- [ ] Desarrollar el esqueleto del bot:
-  - [ ] Webhook (verificación `GET` + recepción `POST` de mensajes).
-  - [ ] Función de envío de mensajes a la WhatsApp Cloud API.
+- [ ] **Prueba real:** escribir al número y confirmar que responde "Hola"
+  (revisar CloudWatch / DynamoDB si falla).
+- [ ] **Seguridad:** eliminar/rotar la *access key de root* (`AKIAWKZRYONHSG2JPV6J`)
+  ahora que existe `stebcutz-deploy`; mover `WHATSAPP_TOKEN` a Secrets Manager/SSM.
+- [ ] Activar GitHub Pages en *Settings → Pages* y poner la URL de privacidad en Meta.
+- [ ] Desarrollar la lógica del bot:
+  - [ ] Conversación real (más allá de "Hola").
   - [ ] Integración con Google Sheets (lectura de disponibilidad).
-- [ ] Configurar despliegue serverless en AWS.
-- [ ] Configurar CI/CD con GitHub Actions.
+  - [ ] Agendamiento / confirmaciones de citas.
 
 ---
 
