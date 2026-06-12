@@ -1,0 +1,58 @@
+name: Deploy (AWS CDK)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app.py"
+      - "cdk.json"
+      - "requirements.txt"
+      - "stebcutz/**"
+      - "lambda/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+# Evita despliegues solapados.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # Config del webhook (inyectada como env vars que lee app.py).
+      WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+      WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+      WHATSAPP_VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node (para el CLI de CDK)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Instalar dependencias Python
+        run: pip install -r requirements.txt
+
+      - name: Bootstrap del entorno CDK (idempotente)
+        run: cdk bootstrap
+
+      - name: Desplegar
+        run: cdk deploy --require-approval never --outputs-file cdk-outputs.json
+
+      - name: Mostrar la URL del webhook
+        run: cat cdk-outputs.json
