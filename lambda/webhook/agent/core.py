@@ -22,7 +22,7 @@ if os.environ.get("AGENT_DEBUG", "1") == "1":
         print("[agent] no se pudo activar verbose logging:", repr(err))
 
 # Modelo por defecto (configurable con la env var OPENAI_MODEL). 'mini' = economico.
-DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = "gpt-5-mini"
 
 # El comportamiento/persona del agente vive en un .md aparte (facil de editar).
 _BEHAVIOR = (Path(__file__).resolve().parent / "behavior.md").read_text(encoding="utf-8")

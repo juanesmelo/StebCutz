@@ -77,7 +77,7 @@ class StebcutzStack(Stack):
                 "GOOGLE_SERVICE_ACCOUNT_JSON": config["GOOGLE_SERVICE_ACCOUNT_JSON"],
                 # OpenAI (agente). OPENAI_API_KEY secreta; OPENAI_MODEL configurable.
                 "OPENAI_API_KEY": config["OPENAI_API_KEY"],
-                "OPENAI_MODEL": config.get("OPENAI_MODEL", "gpt-4o-mini"),
+                "OPENAI_MODEL": config.get("OPENAI_MODEL", "gpt-5-mini"),
             },
         )
         table.grant_read_write_data(webhook_fn)
