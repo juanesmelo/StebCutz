@@ -10,9 +10,14 @@ asi que la funcion no necesita dependencias empaquetadas.
 
 import json
 import os
+import sys
 import time
 import urllib.request
 import urllib.error
+
+# Dependencias vendorizadas (google-auth, requests) instaladas en ./vendor.
+# Hay que añadirlas al path ANTES de importar el cliente de Sheets.
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "vendor"))
 
 import boto3
 
@@ -77,12 +82,34 @@ def _handle_message(event):
     _save_message(msg_id, from_number, text)
 
     try:
-        _send_reply(from_number, "Hola")
+        _send_reply(from_number, _build_reply(text))
     except urllib.error.HTTPError as err:
         # Logueamos el error pero igual devolvemos 200 para que Meta no reintente.
         print("Error enviando respuesta:", err.code, err.read().decode("utf-8", "ignore"))
 
     return _ok()
+
+
+def _build_reply(text):
+    """Decide la respuesta segun el texto entrante.
+
+    Por ahora responde "Hola" a todo. El comando temporal `ping sheet` sirve para
+    comprobar end-to-end (desde el propio WhatsApp) la conexion con Google Sheets.
+    """
+    cmd = (text or "").strip().lower()
+    if cmd == "ping sheet":
+        # Import perezoso: solo cargamos google-auth si se usa el comando, asi un
+        # fallo de ./vendor no afecta el flujo normal ni la verificacion del webhook.
+        try:
+            import sheets
+
+            rows = sheets.read_range("A1:B5")
+        except Exception as err:  # noqa: BLE001 - queremos reportar cualquier fallo
+            return f"Error leyendo el Sheet: {err}"
+        if not rows:
+            return "Conexion con Sheets OK, pero el rango A1:B5 esta vacio."
+        return "Sheet OK:\n" + "\n".join(" | ".join(r) for r in rows)
+    return "Hola"
 
 
 def _already_processed(msg_id):

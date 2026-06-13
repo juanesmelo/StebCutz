@@ -1,5 +1,10 @@
 .env
 
+# Credenciales de GCP (clave JSON de la service account) — NUNCA subir
+stebcutz-*.json
+*service-account*.json
+*-gcp-key.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -11,6 +16,9 @@ venv/
 cdk.out/
 .cdk.staging/
 cdk-outputs.json
+
+# Dependencias vendorizadas de la Lambda (se instalan en cada deploy)
+lambda/webhook/vendor/
 
 # Node
 node_modules/

@@ -88,10 +88,39 @@ Todas guardadas de forma segura en el archivo `.env` (ignorado por git, **no** s
 
 ---
 
+## 📅 Sesión: 12 de junio de 2026 (parte 2)
+
+### ✅ Prueba real del webhook
+- Se escribió al número de producción y el bot respondió **"Hola"**. Flujo Meta →
+  API Gateway → Lambda → DynamoDB → Graph API confirmado end-to-end.
+
+### 🛠️ Integración con Google Sheets (en progreso)
+- **Decisiones:** GCP desde cero · acceso **lectura + escritura**
+  (scope `https://www.googleapis.com/auth/spreadsheets`) · clave JSON como
+  **variable de entorno** de la Lambda (vía GitHub Secrets, igual que `WHATSAPP_TOKEN`).
+- **Código añadido:**
+  - `lambda/webhook/requirements.txt`: `google-auth` + `requests` (Python puro, sin Docker).
+  - `lambda/webhook/sheets.py`: cliente REST v4 (`read_range`, `append_row`, `update_range`)
+    con sesión autenticada perezosa y cacheada entre invocaciones.
+  - `lambda/webhook/handler.py`: añade `./vendor` al `sys.path` y un comando temporal
+    `ping sheet` para verificar la conexión desde el propio WhatsApp.
+  - `stebcutz_stack.py` + `app.py`: nuevas env vars `SHEET_ID` y `GOOGLE_SERVICE_ACCOUNT_JSON`.
+  - `.github/workflows/deploy.yml`: paso que **vendoriza** las deps en
+    `lambda/webhook/vendor/` + inyección de los 2 nuevos secrets.
+  - `.gitignore`: ignora `lambda/webhook/vendor/`.
+- **⚠️ Pendiente del usuario (GCP):** crear proyecto, habilitar Sheets API, crear
+  service account + clave JSON, compartir el Sheet con su email, y cargar
+  `SHEET_ID` / `GOOGLE_SERVICE_ACCOUNT_JSON` en `.env` y GitHub Secrets.
+- **⚠️ Límite a vigilar:** el total de env vars de una Lambda no puede pasar de **4 KB**;
+  la clave JSON ocupa ~2.4 KB. Si se acerca al límite, mover a Secrets Manager.
+
+---
+
 ## 🔜 Próximos pasos
 
-- [ ] **Prueba real:** escribir al número y confirmar que responde "Hola"
-  (revisar CloudWatch / DynamoDB si falla).
+- [x] **Prueba real:** el bot responde "Hola". ✅
+- [ ] **GCP:** completar el setup de la service account y cargar los secretos.
+- [ ] **Probar `ping sheet`** tras el deploy y confirmar lectura del Sheet.
 - [ ] **Seguridad:** eliminar/rotar la *access key de root* (`AKIAWKZRYONHSG2JPV6J`)
   ahora que existe `stebcutz-deploy`; mover `WHATSAPP_TOKEN` a Secrets Manager/SSM.
 - [ ] Activar GitHub Pages en *Settings → Pages* y poner la URL de privacidad en Meta.

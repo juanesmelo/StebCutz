@@ -1,0 +1,5 @@
+# Dependencias de la Lambda del webhook.
+# Se instalan (vendorizan) en ./vendor antes de empaquetar; ver deploy.yml.
+# Todas son Python puro -> no requieren Docker para empaquetar.
+google-auth>=2.30.0
+requests>=2.32.0

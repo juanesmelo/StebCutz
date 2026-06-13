@@ -32,6 +32,9 @@ config = {
     "WHATSAPP_PHONE_NUMBER_ID": require("WHATSAPP_PHONE_NUMBER_ID"),
     "WHATSAPP_VERIFY_TOKEN": require("WHATSAPP_VERIFY_TOKEN"),
     "GRAPH_API_VERSION": os.environ.get("GRAPH_API_VERSION", "v21.0"),
+    # Google Sheets: ID del Sheet y clave JSON de la service account (una sola linea).
+    "SHEET_ID": require("SHEET_ID"),
+    "GOOGLE_SERVICE_ACCOUNT_JSON": require("GOOGLE_SERVICE_ACCOUNT_JSON"),
 }
 
 app = cdk.App()

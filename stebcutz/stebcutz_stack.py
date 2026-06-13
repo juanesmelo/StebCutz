@@ -56,6 +56,11 @@ class StebcutzStack(Stack):
                 "WHATSAPP_PHONE_NUMBER_ID": config["WHATSAPP_PHONE_NUMBER_ID"],
                 "WHATSAPP_VERIFY_TOKEN": config["WHATSAPP_VERIFY_TOKEN"],
                 "GRAPH_API_VERSION": config.get("GRAPH_API_VERSION", "v21.0"),
+                # Google Sheets (service account). OJO: el total de env vars de una
+                # Lambda no puede pasar de 4 KB; la clave JSON ocupa ~2.4 KB. Si se
+                # acerca al limite, mover GOOGLE_SERVICE_ACCOUNT_JSON a Secrets Manager.
+                "SHEET_ID": config["SHEET_ID"],
+                "GOOGLE_SERVICE_ACCOUNT_JSON": config["GOOGLE_SERVICE_ACCOUNT_JSON"],
             },
         )
         table.grant_read_write_data(webhook_fn)

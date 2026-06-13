@@ -28,6 +28,9 @@ jobs:
       WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
       WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
       WHATSAPP_VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
+      # Google Sheets (service account).
+      SHEET_ID: ${{ secrets.SHEET_ID }}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
 
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +50,9 @@ jobs:
 
       - name: Instalar dependencias Python
         run: pip install -r requirements.txt
+
+      - name: Vendorizar dependencias de la Lambda
+        run: pip install -r lambda/webhook/requirements.txt -t lambda/webhook/vendor
 
       - name: Bootstrap del entorno CDK (idempotente)
         run: cdk bootstrap
