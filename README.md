@@ -89,6 +89,20 @@ El bot lee/escribe un Google Sheet mediante una **service account** de GCP.
 5. Tras desplegar, escribe **`ping sheet`** por WhatsApp → el bot responde con las
    primeras filas del Sheet (comando temporal de prueba).
 
+### Consultar disponibilidad por WhatsApp
+
+Con el parser de disponibilidad (`lambda/webhook/availability.py`) el bot ya entiende:
+
+| Mensaje | Respuesta |
+|---------|-----------|
+| un día (`sábado`, `viernes`, …) | horarios **libres** de ese día |
+| `disponibilidad` / `horarios` | resumen de cupos libres por día |
+| cualquier otra cosa | `Hola` |
+
+> El Sheet es una matriz `Horas × Días`; **celda vacía = libre**, con texto = ocupado.
+> La API omite celdas vacías al final de cada fila, por lo que el parser trata las filas
+> "cortas" como días libres. Tests: `python lambda/webhook/test_availability.py`.
+
 > La librería de la Lambda (`google-auth`, `requests`) se **vendoriza** en
 > `lambda/webhook/vendor/` durante el deploy (paso del workflow). En local, instálalas
 > con `pip install -r lambda/webhook/requirements.txt -t lambda/webhook/vendor`.

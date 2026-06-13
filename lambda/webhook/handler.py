@@ -93,13 +93,17 @@ def _handle_message(event):
 def _build_reply(text):
     """Decide la respuesta segun el texto entrante.
 
-    Por ahora responde "Hola" a todo. El comando temporal `ping sheet` sirve para
-    comprobar end-to-end (desde el propio WhatsApp) la conexion con Google Sheets.
+    Flujo actual:
+      - "ping sheet"           -> prueba cruda de conexion con Google Sheets (debug).
+      - consulta de horarios   -> disponibilidad real (ver availability.reply_for).
+      - cualquier otra cosa    -> "Hola".
+
+    Los imports son perezosos para que un fallo de ./vendor no afecte el flujo normal
+    ni la verificacion (GET) del webhook.
     """
-    cmd = (text or "").strip().lower()
-    if cmd == "ping sheet":
-        # Import perezoso: solo cargamos google-auth si se usa el comando, asi un
-        # fallo de ./vendor no afecta el flujo normal ni la verificacion del webhook.
+    cmd = (text or "").strip()
+
+    if cmd.lower() == "ping sheet":
         try:
             import sheets
 
@@ -109,6 +113,16 @@ def _build_reply(text):
         if not rows:
             return "Conexion con Sheets OK, pero el rango A1:B5 esta vacio."
         return "Sheet OK:\n" + "\n".join(" | ".join(r) for r in rows)
+
+    try:
+        import availability
+
+        reply = availability.reply_for(cmd)
+        if reply is not None:
+            return reply
+    except Exception as err:  # noqa: BLE001 - reportamos cualquier fallo de lectura/parseo
+        return f"Error consultando disponibilidad: {err}"
+
     return "Hola"
 
 

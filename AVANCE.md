@@ -116,11 +116,37 @@ Todas guardadas de forma segura en el archivo `.env` (ignorado por git, **no** s
 
 ---
 
+## 📅 Sesión: 12 de junio de 2026 (parte 3)
+
+### ✅ Conexión con Google Sheets verificada (vía API)
+- Service account `stebcutzsheets@stebcutz.iam.gserviceaccount.com` lee el Sheet
+  (proyecto `stebcutz`). Probado con un JWT RS256 firmado en local (Node) → token →
+  lectura del rango. Mismo flujo que usa la Lambda.
+- El Sheet es una **matriz de disponibilidad** `Horas × Días` (Lun→Dom, 9AM→9PM);
+  **celda vacía = libre**, con texto = ocupado.
+
+### ✅ Parser de disponibilidad
+- `lambda/webhook/availability.py`: `parse()`, `free_slots()`, `find_day()`,
+  `summary_text()`, `reply_for()`. Maneja **filas irregulares** (la API omite celdas
+  vacías al final → días faltantes = libres), normaliza tildes/mayúsculas e ignora
+  puntuación al detectar el día.
+- `lambda/webhook/handler.py`: enruta mensajes con `availability.reply_for()`
+  (día → horarios libres; `disponibilidad`/`horarios` → resumen; resto → "Hola").
+- `lambda/webhook/test_availability.py`: tests del parser (sin red).
+- Algoritmo validado con un port en Node (asserts sobre filas irregulares + datos
+  reales). Bug detectado y corregido: el día pegado a un signo (`¿…sábado?`) no se
+  detectaba; ahora se tokeniza ignorando puntuación.
+
+---
+
 ## 🔜 Próximos pasos
 
 - [x] **Prueba real:** el bot responde "Hola". ✅
-- [ ] **GCP:** completar el setup de la service account y cargar los secretos.
-- [ ] **Probar `ping sheet`** tras el deploy y confirmar lectura del Sheet.
+- [x] **GCP:** service account + secretos cargados; lectura del Sheet verificada. ✅
+- [x] **Parser de disponibilidad** construido y testeado. ✅
+- [ ] **Probar por WhatsApp**: enviar un día (ej. `sábado`) y `disponibilidad`.
+- [ ] **Lógica conversacional** con Claude (entender lenguaje natural → consultar el parser).
+- [ ] **Escritura**: marcar "Ocupado" al confirmar una cita (`append_row`/`update_range`).
 - [ ] **Seguridad:** eliminar/rotar la *access key de root* (`AKIAWKZRYONHSG2JPV6J`)
   ahora que existe `stebcutz-deploy`; mover `WHATSAPP_TOKEN` a Secrets Manager/SSM.
 - [ ] Activar GitHub Pages en *Settings → Pages* y poner la URL de privacidad en Meta.
