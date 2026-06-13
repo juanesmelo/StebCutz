@@ -4,6 +4,8 @@ Las funciones decoradas con @function_tool se exponen automaticamente al modelo;
 firma y docstring generan el JSON schema de la tool (el SDK usa griffe/inspect).
 """
 
+import traceback
+
 from agents import function_tool
 
 import availability
@@ -18,12 +20,21 @@ def consultar_disponibilidad(dia: str = "") -> str:
         dia: dia de la semana a consultar (ej. "sabado"). Si se omite, devuelve el
             resumen de disponibilidad de toda la semana.
     """
-    rows = sheets.read_range(availability.DEFAULT_RANGE)
-    data = availability.parse(rows)
-    if dia and dia.strip():
-        day = availability.find_day(dia) or dia
-        return availability.free_slots_text(day, data=data)
-    return availability.summary_text(data=data)
+    print(f"[tool] consultar_disponibilidad dia={dia!r}")
+    try:
+        rows = sheets.read_range(availability.DEFAULT_RANGE)
+        data = availability.parse(rows)
+        if dia and dia.strip():
+            day = availability.find_day(dia) or dia
+            out = availability.free_slots_text(day, data=data)
+        else:
+            out = availability.summary_text(data=data)
+    except Exception:  # noqa: BLE001
+        print("[tool] consultar_disponibilidad ERROR:")
+        traceback.print_exc()
+        raise
+    print(f"[tool] consultar_disponibilidad -> {out!r}")
+    return out
 
 
 @function_tool
@@ -38,11 +49,20 @@ def agendar_cita(dia: str, hora: str, nombre: str) -> str:
         hora: franja horaria exacta (ej. "10:00AM").
         nombre: nombre del cliente para la reserva.
     """
-    rows = sheets.read_range(availability.DEFAULT_RANGE)
-    cell = availability.find_cell(rows, dia, hora)
-    if cell is None:
-        return f"No encontre el dia '{dia}' o la hora '{hora}' en la agenda."
-    if not cell["is_free"]:
-        return f"Ese horario ({cell['day']} {cell['hour']}) ya esta ocupado."
-    sheets.update_range(cell["a1"], [[nombre.strip()]])
-    return f"Cita confirmada: {cell['day']} a las {cell['hour']} a nombre de {nombre.strip()}."
+    print(f"[tool] agendar_cita dia={dia!r} hora={hora!r} nombre={nombre!r}")
+    try:
+        rows = sheets.read_range(availability.DEFAULT_RANGE)
+        cell = availability.find_cell(rows, dia, hora)
+        if cell is None:
+            out = f"No encontre el dia '{dia}' o la hora '{hora}' en la agenda."
+        elif not cell["is_free"]:
+            out = f"Ese horario ({cell['day']} {cell['hour']}) ya esta ocupado."
+        else:
+            sheets.update_range(cell["a1"], [[nombre.strip()]])
+            out = f"Cita confirmada: {cell['day']} a las {cell['hour']} a nombre de {nombre.strip()}."
+    except Exception:  # noqa: BLE001
+        print("[tool] agendar_cita ERROR:")
+        traceback.print_exc()
+        raise
+    print(f"[tool] agendar_cita -> {out!r}")
+    return out

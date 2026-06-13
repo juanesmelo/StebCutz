@@ -12,6 +12,15 @@ from agents import Agent, Runner
 from .memory import DynamoDBSession
 from .tools.schedule import agendar_cita, consultar_disponibilidad
 
+# Logging detallado del SDK a stdout (-> CloudWatch). Toggle con AGENT_DEBUG=0.
+if os.environ.get("AGENT_DEBUG", "1") == "1":
+    try:
+        from agents import enable_verbose_stdout_logging
+
+        enable_verbose_stdout_logging()
+    except Exception as err:  # noqa: BLE001
+        print("[agent] no se pudo activar verbose logging:", repr(err))
+
 # Modelo por defecto (configurable con la env var OPENAI_MODEL). 'mini' = economico.
 DEFAULT_MODEL = "gpt-4o-mini"
 
@@ -33,5 +42,14 @@ def run(phone, text):
     particionada por `phone` (el numero de WhatsApp).
     """
     session = DynamoDBSession(phone)
-    result = Runner.run_sync(_agent, text, session=session)
+    print(f"[agent] IN from={phone}: {text!r}")
+    try:
+        result = Runner.run_sync(_agent, text, session=session)
+    except Exception as err:  # noqa: BLE001
+        import traceback
+
+        print("[agent] EXCEPTION:", repr(err))
+        traceback.print_exc()
+        raise
+    print(f"[agent] OUT: {result.final_output!r}")
     return result.final_output
