@@ -35,6 +35,9 @@ config = {
     # Google Sheets: ID del Sheet y clave JSON de la service account (una sola linea).
     "SHEET_ID": require("SHEET_ID"),
     "GOOGLE_SERVICE_ACCOUNT_JSON": require("GOOGLE_SERVICE_ACCOUNT_JSON"),
+    # OpenAI (agente): API key (obligatoria) y modelo (opcional, default gpt-4o-mini).
+    "OPENAI_API_KEY": require("OPENAI_API_KEY"),
+    "OPENAI_MODEL": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
 }
 
 app = cdk.App()

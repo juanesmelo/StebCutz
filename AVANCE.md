@@ -139,14 +139,42 @@ Todas guardadas de forma segura en el archivo `.env` (ignorado por git, **no** s
 
 ---
 
+## 📅 Sesión: 12 de junio de 2026 (parte 4)
+
+### 🧠 Agente conversacional ("CODEX") con OpenAI Agents SDK
+- **Investigación previa:** se evaluó usar *OpenAI Codex* (lo que pidió el usuario). Codex
+  es un agente de **programación** (CLI/SDK que envuelve un binario + sandbox, requiere
+  repo git, procesos largos) → **no encaja** en una Lambda de chat. Se eligió el
+  **OpenAI Agents SDK** (`openai-agents`), que da tools + memoria + comportamiento en `.md`
+  y corre limpio en la Lambda. Decisiones: **modelo mini** (`gpt-4o-mini`, configurable
+  por `OPENAI_MODEL`) y alcance **consultar + agendar**.
+- **Estructura nueva** `lambda/webhook/agent/`:
+  - `behavior.md` (persona/reglas), `core.py` (`Agent` + `run()` con `Runner.run_sync`),
+    `memory.py` (`DynamoDBSession` implementa `SessionABC`), `tools/schedule.py`
+    (`consultar_disponibilidad`, `agendar_cita` con `@function_tool`).
+  - `handler.py` ahora enruta todo mensaje al agente (mantiene `ping sheet` de debug).
+- **Memoria:** nueva tabla DynamoDB `ConversationsTable` (PK = `phone`); guarda los
+  últimos 40 items por usuario.
+- **Escritura validada:** mapeo (día, hora) → celda A1 verificado contra el Sheet real
+  (B2 ocupado, G2/H4 libres, tolera espacios, día/hora inválidos → None). **Sin escribir.**
+- **OpenAI:** `OPENAI_API_KEY` validada contra la API (200 OK). Se corrigió un `.env`
+  mal formado (la key venía con comillas tipográficas y pegada a `OPENAI_MODEL`). Key
+  reconstruida (164 chars) y secrets `OPENAI_API_KEY`/`OPENAI_MODEL` subidos a GitHub.
+- **Infra Lambda:** timeout 15s→60s y memoria 256→512 MB (el agente hace varias llamadas
+  + cold start de `openai-agents`).
+- **⚠️ Vigilar límite de 4 KB de env vars** (la clave de Google + ahora OpenAI suman
+  ~3.1 KB). Si se excede, mover `GOOGLE_SERVICE_ACCOUNT_JSON` a Secrets Manager.
+
+---
+
 ## 🔜 Próximos pasos
 
 - [x] **Prueba real:** el bot responde "Hola". ✅
 - [x] **GCP:** service account + secretos cargados; lectura del Sheet verificada. ✅
 - [x] **Parser de disponibilidad** construido y testeado. ✅
-- [ ] **Probar por WhatsApp**: enviar un día (ej. `sábado`) y `disponibilidad`.
-- [ ] **Lógica conversacional** con Claude (entender lenguaje natural → consultar el parser).
-- [ ] **Escritura**: marcar "Ocupado" al confirmar una cita (`append_row`/`update_range`).
+- [x] **Agente (OpenAI Agents SDK)** con memoria DynamoDB + tools de agenda. ✅
+- [ ] **Desplegar y probar por WhatsApp**: conversación real, consultar y agendar.
+- [ ] Afinar el comportamiento (`behavior.md`) según las pruebas.
 - [ ] **Seguridad:** eliminar/rotar la *access key de root* (`AKIAWKZRYONHSG2JPV6J`)
   ahora que existe `stebcutz-deploy`; mover `WHATSAPP_TOKEN` a Secrets Manager/SSM.
 - [ ] Activar GitHub Pages en *Settings → Pages* y poner la URL de privacidad en Meta.

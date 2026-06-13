@@ -82,7 +82,7 @@ def _handle_message(event):
     _save_message(msg_id, from_number, text)
 
     try:
-        _send_reply(from_number, _build_reply(text))
+        _send_reply(from_number, _build_reply(text, from_number))
     except urllib.error.HTTPError as err:
         # Logueamos el error pero igual devolvemos 200 para que Meta no reintente.
         print("Error enviando respuesta:", err.code, err.read().decode("utf-8", "ignore"))
@@ -90,16 +90,14 @@ def _handle_message(event):
     return _ok()
 
 
-def _build_reply(text):
-    """Decide la respuesta segun el texto entrante.
+def _build_reply(text, from_number):
+    """Genera la respuesta al mensaje entrante.
 
-    Flujo actual:
-      - "ping sheet"           -> prueba cruda de conexion con Google Sheets (debug).
-      - consulta de horarios   -> disponibilidad real (ver availability.reply_for).
-      - cualquier otra cosa    -> "Hola".
+    - "ping sheet" -> prueba cruda de conexion con Google Sheets (debug).
+    - resto        -> lo procesa el AGENTE (OpenAI Agents SDK) con memoria por numero.
 
-    Los imports son perezosos para que un fallo de ./vendor no afecte el flujo normal
-    ni la verificacion (GET) del webhook.
+    Los imports son perezosos para que un fallo de ./vendor no afecte la verificacion
+    (GET) del webhook.
     """
     cmd = (text or "").strip()
 
@@ -115,15 +113,12 @@ def _build_reply(text):
         return "Sheet OK:\n" + "\n".join(" | ".join(r) for r in rows)
 
     try:
-        import availability
+        import agent
 
-        reply = availability.reply_for(cmd)
-        if reply is not None:
-            return reply
-    except Exception as err:  # noqa: BLE001 - reportamos cualquier fallo de lectura/parseo
-        return f"Error consultando disponibilidad: {err}"
-
-    return "Hola"
+        return agent.run(from_number, cmd)
+    except Exception as err:  # noqa: BLE001 - reportamos cualquier fallo del agente
+        print("Error en el agente:", repr(err))
+        return "Disculpa, tuve un problema procesando tu mensaje. Intenta de nuevo en un momento. 🙏"
 
 
 def _already_processed(msg_id):

@@ -41,6 +41,17 @@ class StebcutzStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
+        # --- DynamoDB: memoria de conversaciones del agente (PK = numero de WhatsApp) ---
+        conversations = dynamodb.Table(
+            self,
+            "ConversationsTable",
+            partition_key=dynamodb.Attribute(
+                name="phone", type=dynamodb.AttributeType.STRING
+            ),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=RemovalPolicy.DESTROY,
+        )
+
         # --- Lambda: el webhook ---
         webhook_fn = _lambda.Function(
             self,
@@ -48,10 +59,13 @@ class StebcutzStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_12,
             handler="handler.handler",
             code=_lambda.Code.from_asset("lambda/webhook"),
-            timeout=Duration.seconds(15),
-            memory_size=256,
+            # El agente hace varias llamadas (OpenAI + Sheets) -> timeout y memoria
+            # holgados (tambien para el cold start con openai-agents).
+            timeout=Duration.seconds(60),
+            memory_size=512,
             environment={
                 "TABLE_NAME": table.table_name,
+                "CONVERSATIONS_TABLE": conversations.table_name,
                 "WHATSAPP_TOKEN": config["WHATSAPP_TOKEN"],
                 "WHATSAPP_PHONE_NUMBER_ID": config["WHATSAPP_PHONE_NUMBER_ID"],
                 "WHATSAPP_VERIFY_TOKEN": config["WHATSAPP_VERIFY_TOKEN"],
@@ -61,9 +75,13 @@ class StebcutzStack(Stack):
                 # acerca al limite, mover GOOGLE_SERVICE_ACCOUNT_JSON a Secrets Manager.
                 "SHEET_ID": config["SHEET_ID"],
                 "GOOGLE_SERVICE_ACCOUNT_JSON": config["GOOGLE_SERVICE_ACCOUNT_JSON"],
+                # OpenAI (agente). OPENAI_API_KEY secreta; OPENAI_MODEL configurable.
+                "OPENAI_API_KEY": config["OPENAI_API_KEY"],
+                "OPENAI_MODEL": config.get("OPENAI_MODEL", "gpt-4o-mini"),
             },
         )
         table.grant_read_write_data(webhook_fn)
+        conversations.grant_read_write_data(webhook_fn)
 
         # --- API Gateway REST: /webhook (GET verificacion, POST mensajes) ---
         api = apigw.LambdaRestApi(

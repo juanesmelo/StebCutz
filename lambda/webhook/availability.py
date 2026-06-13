@@ -118,6 +118,50 @@ def free_slots(day, data=None, rows=None):
     return data["free"].get(_norm(day), [])
 
 
+def _col_letter(idx):
+    """Indice de columna 0-based -> letra A1 (0->A, 1->B, ...). Suficiente para A..Z."""
+    return chr(ord("A") + idx)
+
+
+def _norm_hour(text):
+    """Normaliza una hora para comparar ('9:00 AM' == '9:00AM')."""
+    return _norm(text).replace(" ", "")
+
+
+def find_cell(rows, dia, hora):
+    """Localiza en la matriz cruda la celda (notacion A1) de un (dia, hora).
+
+    Devuelve un dict {a1, is_free, day, hour, current} o None si no encuentra el dia
+    o la hora. `is_free` es True si la celda esta vacia. NO escribe nada.
+    """
+    if not rows:
+        return None
+    header = rows[0]
+
+    day_idx = None
+    for k in range(1, len(header)):
+        if _norm(header[k]) == _norm(dia):
+            day_idx = k
+            break
+    if day_idx is None:
+        return None
+
+    target = _norm_hour(hora)
+    for r in range(1, len(rows)):
+        row = rows[r]
+        if not row or _norm_hour(row[0]) != target:
+            continue
+        cell = row[day_idx] if day_idx < len(row) else ""
+        return {
+            "a1": f"{_col_letter(day_idx)}{r + 1}",  # fila de hoja = indice + 1
+            "is_free": not (cell or "").strip(),
+            "day": header[day_idx].strip(),
+            "hour": (row[0] or "").strip(),
+            "current": (cell or "").strip(),
+        }
+    return None
+
+
 def find_day(text):
     """Devuelve el nombre de dia (visible) mencionado en el texto, o None."""
     tokens = set(_words(text))

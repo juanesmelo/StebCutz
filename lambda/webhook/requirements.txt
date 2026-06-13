@@ -1,5 +1,7 @@
 # Dependencias de la Lambda del webhook.
 # Se instalan (vendorizan) en ./vendor antes de empaquetar; ver deploy.yml.
-# Todas son Python puro -> no requieren Docker para empaquetar.
+# El vendorizado corre en CI (Ubuntu x86_64), igual que el runtime de la Lambda,
+# por lo que las wheels binarias (p.ej. pydantic-core de openai-agents) son compatibles.
 google-auth>=2.30.0
 requests>=2.32.0
+openai-agents>=0.2.0

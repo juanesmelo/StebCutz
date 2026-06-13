@@ -39,6 +39,8 @@ El despliegue necesita estas variables (en `.env` local y como **GitHub Secrets*
 | `WHATSAPP_VERIFY_TOKEN` | Palabra secreta del webhook (la inventas tú) |
 | `SHEET_ID` | ID del Google Sheet (lo que va entre `/d/` y `/edit` en la URL) |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Clave JSON de la service account de GCP, **minificada en una sola línea** |
+| `OPENAI_API_KEY` | Clave de la API de OpenAI (para el agente) |
+| `OPENAI_MODEL` | Modelo de OpenAI a usar (opcional, default `gpt-4o-mini`) |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Credenciales del usuario IAM de despliegue (solo CI) |
 
 ## Despliegue por CI/CD (recomendado)
@@ -102,6 +104,28 @@ Con el parser de disponibilidad (`lambda/webhook/availability.py`) el bot ya ent
 > El Sheet es una matriz `Horas × Días`; **celda vacía = libre**, con texto = ocupado.
 > La API omite celdas vacías al final de cada fila, por lo que el parser trata las filas
 > "cortas" como días libres. Tests: `python lambda/webhook/test_availability.py`.
+
+## Agente conversacional (OpenAI Agents SDK)
+
+A partir de aquí el bot no solo responde "Hola": un **agente** procesa cada mensaje con
+GPT, mantiene memoria por usuario y puede consultar y agendar citas.
+
+```
+lambda/webhook/agent/
+  behavior.md          ← comportamiento/persona del agente (system prompt)
+  core.py              ← arma el Agent + run(phone, texto) con Runner.run_sync
+  memory.py            ← memoria por número en DynamoDB (SessionABC del SDK)
+  tools/
+    schedule.py        ← consultar_disponibilidad / agendar_cita (@function_tool)
+```
+
+Flujo: **Meta → Lambda → `agent.run(número, texto)` → (OpenAI + tools + memoria) → respuesta a Meta.**
+
+- **Memoria:** tabla DynamoDB `ConversationsTable`, particionada por `phone` (el número
+  de WhatsApp); guarda los últimos turnos de la conversación.
+- **Tools:** leen/escriben el Google Sheet vía `availability.py` + `sheets.py`.
+- **Modelo:** configurable con `OPENAI_MODEL` (default `gpt-4o-mini`).
+- La librería `openai-agents` se vendoriza en `vendor/` en el deploy (igual que el resto).
 
 > La librería de la Lambda (`google-auth`, `requests`) se **vendoriza** en
 > `lambda/webhook/vendor/` durante el deploy (paso del workflow). En local, instálalas
