@@ -44,7 +44,8 @@ def run(phone, text):
     session = DynamoDBSession(phone)
     print(f"[agent] IN from={phone}: {text!r}")
     try:
-        result = Runner.run_sync(_agent, text, session=session)
+        # `context=phone`: las tools lo leen via RunContextWrapper (no lo ve el modelo).
+        result = Runner.run_sync(_agent, text, session=session, context=phone)
     except Exception as err:  # noqa: BLE001
         import traceback
 
